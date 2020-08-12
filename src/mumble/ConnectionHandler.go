@@ -153,7 +153,7 @@ func joinChannel(conn *tls.Conn, channel int) {
 }
 
 func doVoiceStuff(conn *tls.Conn) {
-	ticker := time.NewTicker(20 * time.Millisecond)
+	ticker := time.NewTicker(50 * time.Millisecond)
 
 	f, err := os.Open("test.raw")
 	if err != nil {
@@ -184,10 +184,14 @@ func sendVoiceData(conn *tls.Conn, f *os.File) {
 		fmt.Println("There was an error creating the encoder")
 	}
 
-	const bufferSize = 960
+	const bufferSize = 2880
 
 	pcm := make([]int16, bufferSize)
-	binary.Read(f, binary.LittleEndian, &pcm)
+	err = binary.Read(f, binary.LittleEndian, &pcm)
+	fmt.Println(err)
+	if err == io.EOF {
+		f.Seek(0, 0)
+	}
 
 	frameSize := len(pcm)
 	frameSizeMs := float32(frameSize) / channels * 1000 / sampleRate
